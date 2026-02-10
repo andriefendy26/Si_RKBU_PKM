@@ -11,19 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tahun_anggaran', function (Blueprint $table) {
+        Schema::create('teams', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->timestamps();
         });
-   
-        // Schema::create('tahun_anggaran_user', function (Blueprint $table) {
-        //     $table->id();
-        //     $table->unsignedBigInteger('id_user');
-        //     $table->unsignedBigInteger('id_tahun_anggaran');
-        //     $table->timestamps();
-        // });
-    
     }
 
     /**
@@ -31,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tahun_anggaran');
+        Schema::dropIfExists('teams');
     }
 };

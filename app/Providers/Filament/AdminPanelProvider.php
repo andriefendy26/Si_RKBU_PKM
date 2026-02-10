@@ -2,6 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Tenancy\EditTeamProfile;
+use BezhanSalleh\FilamentShield\Middleware\SyncShieldTenant;
+use App\Models\TahunAnggaran;
+use App\Models\Team;
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -19,6 +23,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use RegisterTeam;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -57,8 +62,15 @@ class AdminPanelProvider extends PanelProvider
                 FilamentShieldPlugin::make()
                 ->navigationGroup("User Management"),
             ])
+            ->tenantMiddleware([
+                SyncShieldTenant::class,
+            ], isPersistent: true)
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->tenant(Team::class)
+            ->tenantRegistration(RegisterTeam::class)
+            ->tenantProfile(EditTeamProfile::class);;
+            
     }
 }
