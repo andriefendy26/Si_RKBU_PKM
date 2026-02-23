@@ -37,13 +37,7 @@ class BarangResource extends Resource
                     ->preload(),
                 Select::make('id_kategori')
                     ->label('Kategori Barang')
-                    ->relationship(
-                        'kategori',
-                        'name',
-                        fn (\Illuminate\Database\Eloquent\Builder $query) => session()->has('tahun_anggaran_id')
-                            ? $query->where('id_tahun_anggaran', session('tahun_anggaran_id'))
-                            : $query
-                    )
+                    ->relationship('kategori', 'name')
                     ->required()
                     ->searchable()
                     ->preload(),
