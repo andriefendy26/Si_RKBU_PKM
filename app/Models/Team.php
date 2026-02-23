@@ -7,14 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Team extends Model
 {
-    //
-    protected $fillable = [
-        "name"
-    ];
+    protected $fillable = ['name'];
 
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class, 'team_user')->withTimestamps();
     }
-
 }
+

@@ -38,7 +38,7 @@ return [
     |
     */
 
-    'tenant_model' => 'App\Models\Team',
+    // 'tenant_model' => 'App\Models\Team',
 
 
     /*
@@ -167,6 +167,13 @@ return [
         'subject' => 'model',
         'manage' => [
             \BezhanSalleh\FilamentShield\Resources\Roles\RoleResource::class => [
+                'viewAny',
+                'view',
+                'create',
+                'update',
+                'delete',
+            ],
+            \App\Filament\Resources\TahunAnggaranResource::class => [
                 'viewAny',
                 'view',
                 'create',

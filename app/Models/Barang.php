@@ -2,34 +2,45 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Barang extends Model
 {
-    //
-    protected $table = "barang";
+    protected $table = 'barang';
 
     protected $fillable = [
         'kode_barang',
         'nama_barang',
-        "spesifikasi",
+        'spesifikasi',
         'satuan',
-        'harga_estiimasi',
-        'disetujui',
-
+        'harga_estimasi',
+        'is_active',
         'id_tahun_anggaran',
-        'id_kategori'
+        'id_kategori',
     ];
 
-    // protected static function booted(): void
-    // {
-    //     static::addGlobalScope('tahun_anggaran', function (Builder $query) {
-    //         if (auth()->hasUser()) {
-    //             $query->where('id_tahun_anggaran', auth()->user()->id_tahun_anggaran);
-    //             // or with a `team` relationship defined:
-    //             $query->whereBelongsTo(auth()->user()->tahunAnggaran);
-    //         }
-    //     });
-    // }
+    protected function casts(): array
+    {
+        return [
+            'harga_estimasi' => 'decimal:2',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function tahunAnggaran(): BelongsTo
+    {
+        return $this->belongsTo(TahunAnggaran::class, 'id_tahun_anggaran');
+    }
+
+    public function kategori(): BelongsTo
+    {
+        return $this->belongsTo(KategoriBarang::class, 'id_kategori');
+    }
+
+    public function rkbus(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(RKBU::class, 'id_barang');
+    }
 }
+
