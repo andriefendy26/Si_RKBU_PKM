@@ -13,9 +13,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Support\Icons\Heroicon;
 use BackedEnum;
 use pxlrbt\FilamentExcel\Actions\ExportAction;
-// use Filament\Actions\ExportBulkAction;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use pxlrbt\FilamentExcel\Columns\Column;
 use UnitEnum;
 
 class RkbuResource extends Resource
@@ -73,7 +72,15 @@ class RkbuResource extends Resource
             // ->Actions
             ->headerActions([
                 ExportAction::make()->exports([
-                    ExcelExport::make()->withFilename(date('Y-m-d') . ' - export'),
+                    ExcelExport::make()
+                        ->withFilename(date('Y-m-d') . ' - export')
+                        ->withColumns([
+                            Column::make("tahunAnggaran.name")->heading("Tahun Anggaran"),
+                            Column::make("barang.nama_barang")->heading("Barang"),
+                            Column::make("barang.kode_barang")->heading("Kode Barang"),
+                            Column::make("jumlah")->heading("Jumlah"),
+                            Column::make("total")->heading("Total"),
+                        ]),
                     ExcelExport::make('table')->withFilename(fn ($resource) => $resource::getLabel())
                 ]),
             ])
