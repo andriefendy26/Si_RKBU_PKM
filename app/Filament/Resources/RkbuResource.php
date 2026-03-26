@@ -12,6 +12,10 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Support\Icons\Heroicon;
 use BackedEnum;
+use pxlrbt\FilamentExcel\Actions\ExportAction;
+// use Filament\Actions\ExportBulkAction;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use UnitEnum;
 
 class RkbuResource extends Resource
@@ -21,6 +25,7 @@ class RkbuResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
     protected static string|UnitEnum|null $navigationGroup = 'Transaksi';
     protected static ?string $recordTitleAttribute = 'id';
+
 
     public static function form(Schema $schema): Schema
     {
@@ -61,8 +66,19 @@ class RkbuResource extends Resource
                 TextColumn::make('jumlah')->sortable(),
                 TextColumn::make('total')->numeric(decimalPlaces: 2)->sortable(),
                 TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
+            ])   
+            // ->bulkActions([
+            //     ExportBulkAction::make()
+            // ])
+            // ->Actions
+            ->headerActions([
+                ExportAction::make()->exports([
+                    ExcelExport::make()->withFilename(date('Y-m-d') . ' - export'),
+                    ExcelExport::make('table')->withFilename(fn ($resource) => $resource::getLabel())
+                ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ;
     }
 
     public static function getPages(): array
