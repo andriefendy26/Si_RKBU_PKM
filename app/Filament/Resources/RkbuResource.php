@@ -81,7 +81,20 @@ class RkbuResource extends Resource
                             Column::make("jumlah")->heading("Jumlah"),
                             Column::make("total")->heading("Total"),
                         ]),
-                    ExcelExport::make('table')->withFilename(fn ($resource) => $resource::getLabel())
+                    ExcelExport::make("Export_e")
+                        // ->withFilename(date('Y-m-d') . ' - export2')
+                        ->fromTable()
+                        ->withSheets(
+                             sheets: [
+                                new OverriddenDataSheet(),
+                            ],
+                            prepend: [
+                                new CoverSheet(),
+                            ],
+                            append: [
+                                new AppendixSheet(),
+                            ]
+                        ),
                 ]),
             ])
             ->defaultSort('created_at', 'desc')

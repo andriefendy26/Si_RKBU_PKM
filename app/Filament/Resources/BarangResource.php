@@ -19,7 +19,6 @@ use UnitEnum;
 class BarangResource extends Resource
 {
     protected static ?string $model = Barang::class;
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCube;
     protected static string|UnitEnum|null $navigationGroup = 'Master';
     protected static ?string $recordTitleAttribute = 'nama_barang';
@@ -35,12 +34,14 @@ class BarangResource extends Resource
                     ->required()
                     ->searchable()
                     ->preload(),
+
                 Select::make('id_kategori')
                     ->label('Kategori Barang')
                     ->relationship('kategori', 'name')
                     ->required()
                     ->searchable()
                     ->preload(),
+
                 TextInput::make('kode_barang')->required()->maxLength(255),
                 TextInput::make('nama_barang')->required()->maxLength(255),
                 TextInput::make('spesifikasi')->maxLength(65535)->columnSpanFull(),
@@ -49,6 +50,7 @@ class BarangResource extends Resource
                     ->numeric()
                     ->minValue(0)
                     ->default(0),
+                    
                 Toggle::make('is_active')->label('Aktif')->default(true),
             ]);
     }
