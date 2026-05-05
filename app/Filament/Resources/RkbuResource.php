@@ -82,19 +82,10 @@ class RkbuResource extends Resource
                             Column::make("total")->heading("Total"),
                         ]),
                     ExcelExport::make("Export_e")
-                        // ->withFilename(date('Y-m-d') . ' - export2')
-                        ->fromTable()
-                        ->withSheets(
-                             sheets: [
-                                new OverriddenDataSheet(),
-                            ],
-                            prepend: [
-                                new CoverSheet(),
-                            ],
-                            append: [
-                                new AppendixSheet(),
-                            ]
-                        ),
+                        ->withFilename(date('Y-m-d') . ' - export')
+                        ->withSheets([
+                            new OverriddenDataSheet(),
+                        ]),
                 ]),
             ])
             ->defaultSort('created_at', 'desc')
