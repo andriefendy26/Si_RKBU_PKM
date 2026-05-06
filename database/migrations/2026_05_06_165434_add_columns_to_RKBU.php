@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('barang', function (Blueprint $table) {
-            $table->string('disetujui')->nullable()->default('0')->change();
+        Schema::table('RKBU', function (Blueprint $table) {
+            //
+            $table->string('nama_barang')->nullable()->before('jumlah');
         });
     }
 
@@ -21,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('barang', function (Blueprint $table) {
-            $table->string('disetujui')->nullable(false)->default(null)->change();
+        Schema::table('RKBU', function (Blueprint $table) {
+            $table->dropColumn('nama_barang');
         });
     }
 };

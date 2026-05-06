@@ -9,6 +9,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
@@ -36,12 +37,22 @@ class FormRKBU extends Page implements HasSchemas
         $this->form->fill();
     }
 
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['user_id'] = auth()->id();
+
+        return $data;
+    }
+
     public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Section::make('Data RKBU')
-                    ->description('Lengkapi data rencana kebutuhan barang unit.')
+
+                // ── 1. Informasi Umum ──────────────────────────────────────
+                Section::make('Informasi Umum')
+                    ->description('Pilih tahun anggaran dan isi informasi dasar barang.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
                     ->schema([
                         Select::make('id_tahun_anggaran')
                             ->label('Tahun Anggaran')
@@ -52,32 +63,107 @@ class FormRKBU extends Page implements HasSchemas
                             ->default(fn () => session('tahun_anggaran_id'))
                             ->searchable()
                             ->preload()
-                            ->required(),
+                            ->required()
+                            ->columnSpan(1),
 
-                        Select::make('id_barang')
-                            ->label('Barang')
-                            ->relationship(
-                                name: 'barang',
-                                titleAttribute: 'nama_barang'
-                            )
-                            ->searchable()
-                            ->preload()
-                            ->required(),
+                        TextInput::make('nama_barang')
+                            ->label('Nama Barang')
+                            ->placeholder('Contoh: Kursi Kantor')
+                            ->required()
+                            ->columnSpan(1),
 
+                        TextInput::make('satuan')
+                            ->label('Satuan')
+                            ->placeholder('Contoh: Unit, Buah, Set')
+                            ->required()
+                            ->columnSpan(1),
+
+                        Select::make('kondisi')
+                            ->label('Kondisi Barang')
+                            ->options([
+                                'B'  => 'B — Baik',
+                                'RR' => 'RR — Rusak Ringan',
+                                'RB' => 'RB — Rusak Berat',
+                            ])
+                            ->required()
+                            ->columnSpan(1),
+                    ])
+                    ->columns(2),
+
+                // ── 2. Data Kuantitas ──────────────────────────────────────
+                Section::make('Data Kuantitas')
+                    ->description('Isi jumlah barang yang dimiliki, dibutuhkan, dan kekurangannya.')
+                    ->icon(Heroicon::OutlinedCalculator)
+                    ->schema([
                         TextInput::make('jumlah')
-                            ->label('Jumlah')
+                            ->label('Jumlah Barang (Total)')
                             ->integer()
                             ->minValue(1)
-                            ->required(),
+                            ->suffix('unit')
+                            ->required()
+                            ->columnSpan(1),
 
-                        TextInput::make('total')
-                            ->label('Total')
+                        TextInput::make('tersedia')
+                            ->label('Jumlah Yang Ada / Tersedia')
+                            ->integer()
+                            ->minValue(0)
+                            ->suffix('unit')
+                            ->required()
+                            ->columnSpan(1),
+
+                        TextInput::make('kebutuhan')
+                            ->label('Kebutuhan')
+                            ->integer()
+                            ->minValue(1)
+                            ->suffix('unit')
+                            ->required()
+                            ->columnSpan(1),
+
+                        TextInput::make('kekurangan')
+                            ->label('Kekurangan')
+                            ->integer()
+                            ->minValue(0)
+                            ->suffix('unit')
+                            ->required()
+                            ->columnSpan(1),
+                    ])
+                    ->columns(2),
+
+                // ── 3. Data Biaya ──────────────────────────────────────────
+                Section::make('Data Biaya')
+                    ->description('Masukkan estimasi biaya per unit dan total keseluruhan.')
+                    ->icon(Heroicon::OutlinedBanknotes)
+                    ->schema([
+                        TextInput::make('perkiraan_biaya')
+                            ->label('Perkiraan Biaya (per unit)')
                             ->numeric()
                             ->prefix('Rp')
                             ->minValue(0)
-                            ->required(),
+                            ->required()
+                            ->columnSpan(1),
+
+                        TextInput::make('total')
+                            ->label('Total Biaya')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->minValue(0)
+                            ->required()
+                            ->columnSpan(1),
                     ])
                     ->columns(2),
+
+                // ── 4. Analisa & Keterangan ────────────────────────────────
+                Section::make('Analisa & Keterangan')
+                    ->description('Tuliskan analisa singkat terkait kebutuhan barang ini.')
+                    ->icon(Heroicon::OutlinedDocumentText)
+                    ->schema([
+                        TextInput::make('analisa')
+                            ->label('Analisa Kebutuhan')
+                            ->placeholder('Jelaskan alasan kebutuhan barang secara singkat...')
+                            ->required()
+                            ->columnSpanFull(),
+                    ]),
+
             ])
             ->statePath('data')
             ->model(RKBU::class);
@@ -86,6 +172,8 @@ class FormRKBU extends Page implements HasSchemas
     public function save(): void
     {
         $data = $this->form->getState();
+
+        $data = $this->mutateFormDataBeforeCreate($data);
 
         RKBU::create($data);
 

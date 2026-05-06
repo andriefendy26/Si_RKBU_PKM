@@ -17,8 +17,6 @@ return new class extends Migration
             $table->string('total');
 
             $table->unsignedBigInteger("id_tahun_anggaran");
-            $table->unsignedBigInteger("id_barang");
-            $table->foreign('id_barang')->references('id')->on('barang');
             $table->foreign('id_tahun_anggaran')->references('id')->on('tahun_anggaran');
             $table->timestamps();
         });

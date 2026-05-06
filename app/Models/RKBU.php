@@ -10,9 +10,18 @@ class RKBU extends Model
     protected $table = 'RKBU';
 
     protected $fillable = [
+        'nama_barang',
         'jumlah',
+        'tersedia',
+        'kondisi',
+        'kebutuhan',
+        'kekurangan',
+        'satuan',
+        'perkiraan_biaya',
+        'analisa',
         'total',
-        'id_barang',
+        // 'id_barang',
+        'user_id',
         'id_tahun_anggaran',
     ];
 
@@ -29,8 +38,9 @@ class RKBU extends Model
         return $this->belongsTo(TahunAnggaran::class, 'id_tahun_anggaran');
     }
 
-    public function barang(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Barang::class, 'id_barang');
+        return $this->belongsTo(User::class, 'user_id');
     }
+
 }

@@ -18,7 +18,7 @@ class TahunAnggaranResource extends Resource
     protected static ?string $model = TahunAnggaran::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendar;
-    protected static string|UnitEnum|null $navigationGroup = 'Master';
+    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
     protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema

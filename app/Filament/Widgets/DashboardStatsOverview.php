@@ -13,31 +13,15 @@ class DashboardStatsOverview extends StatsOverviewWidget
     {
         $tahunAnggaranId = session('tahun_anggaran_id');
 
-        $queryBarang = \App\Models\Barang::query();
         $queryRkbu = \App\Models\RKBU::query();
 
         if ($tahunAnggaranId) {
-            $queryBarang->where('id_tahun_anggaran', $tahunAnggaranId);
             $queryRkbu->where('id_tahun_anggaran', $tahunAnggaranId);
         }
-
-        $totalBarang = $queryBarang->count();
-        $aktifBarang = (clone $queryBarang)->where('is_active', true)->count();
-        
         $totalRkbuItems = $queryRkbu->sum('jumlah');
         $totalRkbuValue = $queryRkbu->sum('total');
 
         return [
-            Stat::make('Total Barang', $totalBarang)
-                ->description('Barang yang terdaftar')
-                ->descriptionIcon('heroicon-m-cube')
-                ->color('primary'),
-
-            Stat::make('Barang Aktif', $aktifBarang)
-                ->description('Barang status aktif')
-                ->descriptionIcon('heroicon-m-check-circle')
-                ->color('success'),
-
             Stat::make('Total Item RKBU', (int) $totalRkbuItems)
                 ->description('Jumlah item dalam RKBU')
                 ->descriptionIcon('heroicon-m-shopping-bag')
