@@ -21,6 +21,9 @@ use UnitEnum;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Action;
 
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\RKBUExport;
+
 class RkbuResource extends Resource
 {
     protected static ?string $model = RKBU::class;
@@ -260,38 +263,46 @@ class RkbuResource extends Resource
             ->toolbarActions([
                 DeleteBulkAction::make(),
             ])
-            ->recordActions([
-                Action::make('delete')
-                    ->requiresConfirmation()
-                    ->action(fn (Post $record) => $record->delete()),
+            // ->recordActions([
+            //     Action::make('delete')
+            //         ->requiresConfirmation()
+            //         ->action(fn (Post $record) => $record->delete()),
 
-            ])
+            // ])
             ->headerActions([
-                ExportAction::make()
+                // ExportAction::make()
+                //     ->label('Export Excel')
+                //     ->exports([
+                //         ExcelExport::make()
+                //             ->withFilename(date('Y-m-d') . ' - RKBU Export')
+                //             ->withColumns([
+                //                 Column::make('users.name')->heading('Ruangan'),
+                //                 Column::make('tahunAnggaran.name')->heading('Tahun Anggaran'),
+                //                 Column::make('nama_barang')->heading('Nama Barang'),
+                //                 Column::make('satuan')->heading('Satuan'),
+                //                 Column::make('kondisi')->heading('Kondisi'),
+                //                 Column::make('jumlah')->heading('Jumlah'),
+                //                 Column::make('tersedia')->heading('Tersedia'),
+                //                 Column::make('kebutuhan')->heading('Kebutuhan'),
+                //                 Column::make('kekurangan')->heading('Kekurangan'),
+                //                 Column::make('perkiraan_biaya')->heading('Perkiraan Biaya'),
+                //                 Column::make('total')->heading('Total Biaya'),
+                //                 Column::make('analisa')->heading('Analisa'),
+                //             ]),
+                //         ExcelExport::make('Export_e')
+                //             ->withFilename(date('Y-m-d') . ' - RKBU Export')
+                //             ->withSheets([
+                //                 new OverriddenDataSheet(),
+                //             ]),
+                //     ]),
+                Action::make('export_excel')
                     ->label('Export Excel')
-                    ->exports([
-                        ExcelExport::make()
-                            ->withFilename(date('Y-m-d') . ' - RKBU Export')
-                            ->withColumns([
-                                Column::make('users.name')->heading('Ruangan'),
-                                Column::make('tahunAnggaran.name')->heading('Tahun Anggaran'),
-                                Column::make('nama_barang')->heading('Nama Barang'),
-                                Column::make('satuan')->heading('Satuan'),
-                                Column::make('kondisi')->heading('Kondisi'),
-                                Column::make('jumlah')->heading('Jumlah'),
-                                Column::make('tersedia')->heading('Tersedia'),
-                                Column::make('kebutuhan')->heading('Kebutuhan'),
-                                Column::make('kekurangan')->heading('Kekurangan'),
-                                Column::make('perkiraan_biaya')->heading('Perkiraan Biaya'),
-                                Column::make('total')->heading('Total Biaya'),
-                                Column::make('analisa')->heading('Analisa'),
-                            ]),
-                        ExcelExport::make('Export_e')
-                            ->withFilename(date('Y-m-d') . ' - RKBU Export')
-                            ->withSheets([
-                                new OverriddenDataSheet(),
-                            ]),
-                    ]),
+                    // ->icon('heroicon-o-document-download')
+                    ->action(function () {
+                        $tahunAnggaranId = session('tahun_anggaran_id');
+
+                        return Excel::download(new RKBUExport($tahunAnggaranId), 'RKBU.xlsx');
+                    }),
             ])
             ->defaultSort('created_at', 'desc')
             ->striped();

@@ -165,9 +165,12 @@ class FormRKBU extends Page implements HasSchemas
                     ]),
 
             ])
+            ->columns(2)
             ->statePath('data')
             ->model(RKBU::class);
     }
+
+    
 
     public function save(): void
     {
