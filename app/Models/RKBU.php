@@ -11,7 +11,7 @@ class RKBU extends Model
 
     protected $fillable = [
         'nama_barang',
-        'jumlah',
+        // 'jumlah',
         'tersedia',
         'kondisi',
         'kebutuhan',

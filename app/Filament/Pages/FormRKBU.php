@@ -95,13 +95,13 @@ class FormRKBU extends Page implements HasSchemas
                     ->description('Isi jumlah barang yang dimiliki, dibutuhkan, dan kekurangannya.')
                     ->icon(Heroicon::OutlinedCalculator)
                     ->schema([
-                        TextInput::make('jumlah')
-                            ->label('Jumlah Barang (Total)')
-                            ->integer()
-                            ->minValue(1)
-                            ->suffix('unit')
-                            ->required()
-                            ->columnSpan(1),
+                        // TextInput::make('jumlah')
+                        //     ->label('Jumlah Barang (Total)')
+                        //     ->integer()
+                        //     ->minValue(1)
+                        //     ->suffix('unit')
+                        //     ->required()
+                        //     ->columnSpan(1),
 
                         TextInput::make('tersedia')
                             ->label('Jumlah Yang Ada / Tersedia')
