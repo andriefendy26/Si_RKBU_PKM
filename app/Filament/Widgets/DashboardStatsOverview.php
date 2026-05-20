@@ -18,14 +18,14 @@ class DashboardStatsOverview extends StatsOverviewWidget
         if ($tahunAnggaranId) {
             $queryRkbu->where('id_tahun_anggaran', $tahunAnggaranId);
         }
-        $totalRkbuItems = $queryRkbu->sum('jumlah');
+        // $totalRkbuItems = $queryRkbu->sum('jumlah');
         $totalRkbuValue = $queryRkbu->sum('total');
 
         return [
-            Stat::make('Total Item RKBU', (int) $totalRkbuItems)
-                ->description('Jumlah item dalam RKBU')
-                ->descriptionIcon('heroicon-m-shopping-bag')
-                ->color('warning'),
+            // Stat::make('Total Item RKBU', (int) $totalRkbuItems)
+            //     ->description('Jumlah item dalam RKBU')
+            //     ->descriptionIcon('heroicon-m-shopping-bag')
+            //     ->color('warning'),
 
             Stat::make('Estimasi Nilai RKBU', 'Rp ' . number_format((float) $totalRkbuValue, 2, ',', '.'))
                 ->description('Total nilai pengajuan RKBU')
