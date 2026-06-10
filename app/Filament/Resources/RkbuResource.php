@@ -2,43 +2,42 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\RKBUExport;
 use App\Filament\Resources\RkbuResource\Pages;
 use App\Models\RKBU;
+use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Tables\Table;
+use Filament\Support\Icons\Heroicon;
+// use Filament\Tables\Actions\Action as TableAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Support\Icons\Heroicon;
-use BackedEnum;
-use pxlrbt\FilamentExcel\Actions\ExportAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use pxlrbt\FilamentExcel\Columns\Column;
-use UnitEnum;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\Action;
-
+use Filament\Tables\Table;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\RKBUExport;
+use UnitEnum;
 
 class RkbuResource extends Resource
 {
     protected static ?string $model = RKBU::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
+
     protected static string|UnitEnum|null $navigationGroup = 'Transaksi';
+
     protected static ?string $navigationLabel = 'Data RKBU';
+
     protected static ?string $recordTitleAttribute = 'id';
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-
-                // ── 1. Informasi Umum ──────────────────────────────────────
                 Section::make('Informasi Umum')
                     ->description('Pilih tahun anggaran dan isi informasi dasar barang.')
                     ->icon(Heroicon::OutlinedInformationCircle)
@@ -67,7 +66,7 @@ class RkbuResource extends Resource
                         Select::make('kondisi')
                             ->label('Kondisi Barang')
                             ->options([
-                                'B'  => 'B — Baik',
+                                'B' => 'B — Baik',
                                 'RR' => 'RR — Rusak Ringan',
                                 'RB' => 'RB — Rusak Berat',
                             ])
@@ -76,19 +75,10 @@ class RkbuResource extends Resource
                     ])
                     ->columns(2),
 
-                // ── 2. Data Kuantitas ──────────────────────────────────────
                 Section::make('Data Kuantitas')
                     ->description('Isi jumlah barang yang dimiliki, dibutuhkan, dan kekurangannya.')
                     ->icon(Heroicon::OutlinedCalculator)
                     ->schema([
-                        // TextInput::make('jumlah')
-                        //     ->label('Jumlah Barang (Total)')
-                        //     ->integer()
-                        //     ->minValue(1)
-                        //     ->suffix('unit')
-                        //     ->required()
-                        //     ->columnSpan(1),
-
                         TextInput::make('tersedia')
                             ->label('Jumlah Yang Ada / Tersedia')
                             ->integer()
@@ -115,7 +105,6 @@ class RkbuResource extends Resource
                     ])
                     ->columns(2),
 
-                // ── 3. Data Biaya ──────────────────────────────────────────
                 Section::make('Data Biaya')
                     ->description('Masukkan estimasi biaya per unit dan total keseluruhan.')
                     ->icon(Heroicon::OutlinedBanknotes)
@@ -138,7 +127,6 @@ class RkbuResource extends Resource
                     ])
                     ->columns(2),
 
-                // ── 4. Analisa & Keterangan ────────────────────────────────
                 Section::make('Analisa & Keterangan')
                     ->description('Tuliskan analisa singkat terkait kebutuhan barang ini.')
                     ->icon(Heroicon::OutlinedDocumentText)
@@ -149,7 +137,6 @@ class RkbuResource extends Resource
                             ->required()
                             ->columnSpanFull(),
                     ]),
-
             ]);
     }
 
@@ -157,13 +144,13 @@ class RkbuResource extends Resource
     {
         return $table
             ->columns([
-                // ── Selalu tampil (kolom utama) ────────────────────────────
                 TextColumn::make('user.name')
                     ->label('Ruangan')
                     ->badge()
                     ->color('primary')
                     ->sortable()
                     ->searchable(),
+
                 TextColumn::make('tahunAnggaran.name')
                     ->label('Tahun Anggaran')
                     ->badge()
@@ -181,11 +168,17 @@ class RkbuResource extends Resource
                 TextColumn::make('kondisi')
                     ->label('Kondisi')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'B'  => 'success',
+                    ->color(fn (?string $state): string => match ($state) {
+                        'B' => 'success',
                         'RR' => 'warning',
                         'RB' => 'danger',
                         default => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'B' => 'Baik',
+                        'RR' => 'Rusak Ringan',
+                        'RB' => 'Rusak Berat',
+                        default => '-',
                     })
                     ->alignCenter()
                     ->sortable(),
@@ -204,7 +197,39 @@ class RkbuResource extends Resource
                     ->sortable()
                     ->description(fn (RKBU $record): string => 'Satuan: Rp ' . number_format($record->perkiraan_biaya ?? 0, 0, ',', '.')),
 
-                // ── Tersembunyi by default (bisa ditampilkan via toggle) ───
+                TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'approved' => 'success',
+                        'rejected' => 'danger',
+                        'pending' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'approved' => 'Disetujui',
+                        'rejected' => 'Ditolak',
+                        'pending' => 'Menunggu',
+                        default => 'Menunggu',
+                    })
+                    ->sortable(),
+
+                TextColumn::make('approvedBy.name')
+                    ->label('Disetujui Oleh')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('approved_at')
+                    ->label('Tanggal Approve')
+                    ->dateTime('d M Y, H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('rejected_at')
+                    ->label('Tanggal Reject')
+                    ->dateTime('d M Y, H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('jumlah')
                     ->label('Jumlah')
                     ->suffix(' unit')
@@ -255,49 +280,66 @@ class RkbuResource extends Resource
                 SelectFilter::make('kondisi')
                     ->label('Kondisi')
                     ->options([
-                        'B'  => 'B — Baik',
+                        'B' => 'B — Baik',
                         'RR' => 'RR — Rusak Ringan',
                         'RB' => 'RB — Rusak Berat',
                     ]),
+
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'pending' => 'Menunggu',
+                        'approved' => 'Disetujui',
+                        'rejected' => 'Ditolak',
+                    ]),
+            ])
+            ->recordActions([
+                Action::make('approve')
+                    ->label('Approve')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn (RKBU $record): bool => $record->status !== 'approved')
+                    ->action(function (RKBU $record): void {
+                        $record->update([
+                            'status' => 'approved',
+                            'approved_by' => auth()->id(),
+                            'approved_at' => now(),
+                            'rejected_at' => null,
+                        ]);
+
+                        Notification::make()
+                            ->title('Data RKBU berhasil disetujui')
+                            ->success()
+                            ->send();
+                    }),
+
+                Action::make('reject')
+                    ->label('Reject')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->visible(fn (RKBU $record): bool => $record->status !== 'rejected')
+                    ->action(function (RKBU $record): void {
+                        $record->update([
+                            'status' => 'rejected',
+                            'approved_by' => auth()->id(),
+                            'approved_at' => null,
+                            'rejected_at' => now(),
+                        ]);
+
+                        Notification::make()
+                            ->title('Data RKBU berhasil ditolak')
+                            ->danger()
+                            ->send();
+                    }),
             ])
             ->toolbarActions([
                 DeleteBulkAction::make(),
             ])
-            // ->recordActions([
-            //     Action::make('delete')
-            //         ->requiresConfirmation()
-            //         ->action(fn (Post $record) => $record->delete()),
-
-            // ])
             ->headerActions([
-                // ExportAction::make()
-                //     ->label('Export Excel')
-                //     ->exports([
-                //         ExcelExport::make()
-                //             ->withFilename(date('Y-m-d') . ' - RKBU Export')
-                //             ->withColumns([
-                //                 Column::make('users.name')->heading('Ruangan'),
-                //                 Column::make('tahunAnggaran.name')->heading('Tahun Anggaran'),
-                //                 Column::make('nama_barang')->heading('Nama Barang'),
-                //                 Column::make('satuan')->heading('Satuan'),
-                //                 Column::make('kondisi')->heading('Kondisi'),
-                //                 Column::make('jumlah')->heading('Jumlah'),
-                //                 Column::make('tersedia')->heading('Tersedia'),
-                //                 Column::make('kebutuhan')->heading('Kebutuhan'),
-                //                 Column::make('kekurangan')->heading('Kekurangan'),
-                //                 Column::make('perkiraan_biaya')->heading('Perkiraan Biaya'),
-                //                 Column::make('total')->heading('Total Biaya'),
-                //                 Column::make('analisa')->heading('Analisa'),
-                //             ]),
-                //         ExcelExport::make('Export_e')
-                //             ->withFilename(date('Y-m-d') . ' - RKBU Export')
-                //             ->withSheets([
-                //                 new OverriddenDataSheet(),
-                //             ]),
-                //     ]),
                 Action::make('export_excel')
                     ->label('Export Excel')
-                    // ->icon('heroicon-o-document-download')
                     ->action(function () {
                         $tahunAnggaranId = session('tahun_anggaran_id');
 
@@ -311,9 +353,9 @@ class RkbuResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListRkbu::route('/'),
+            'index' => Pages\ListRkbu::route('/'),
             'create' => Pages\CreateRkbu::route('/create'),
-            'edit'   => Pages\EditRkbu::route('/{record}/edit'),
+            'edit' => Pages\EditRkbu::route('/{record}/edit'),
         ];
     }
 

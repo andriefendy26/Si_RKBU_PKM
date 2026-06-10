@@ -20,9 +20,10 @@ class RKBU extends Model
         'perkiraan_biaya',
         'analisa',
         'total',
-        // 'id_barang',
+        'file_path',
         'user_id',
         'id_tahun_anggaran',
+        'status',
     ];
 
     protected function casts(): array
@@ -30,6 +31,7 @@ class RKBU extends Model
         return [
             'jumlah' => 'integer',
             'total' => 'decimal:2',
+            'file_path' => 'string',
         ];
     }
 
@@ -43,4 +45,31 @@ class RKBU extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+
+    public function approve()
+    {
+        $this->status = 'approved';
+        $this->save();
+    }
+
+    public function reject()
+    {
+        $this->status = 'rejected';
+        $this->save();
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === 'approved';
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === 'rejected';
+    }
 }

@@ -22,6 +22,11 @@ class UserForm
                     ->email()
                     ->required()
                     ->maxLength(255),
+                TextInput::make('username')
+                    ->label('Username')
+                    ->unique(table: 'users', column: 'username', ignoreRecord: true)
+                    ->required()
+                    ->maxLength(255),
                 Select::make('roles')
                     ->label('Role')
                     ->relationship(

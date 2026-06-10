@@ -24,7 +24,7 @@ class RKBUExport implements WithMultipleSheets
             ? TahunAnggaran::find($this->tahunAnggaranId)?->name
             : date('Y');
 
-        $query = RKBU::with('user');
+        $query = RKBU::with('user')->where('status', 'approved');
 
         if ($this->tahunAnggaranId) {
             $query->where('id_tahun_anggaran', $this->tahunAnggaranId);
@@ -37,6 +37,10 @@ class RKBUExport implements WithMultipleSheets
 
         foreach ($userList as $userName) {
             $sheets[] = new RKBUSheetExport($userName, $this->tahunAnggaranId, $tahunAnggaran);
+        }
+
+        if (empty($sheets)) {
+            $sheets[] = new RKBUSheetExport("kosong", $this->tahunAnggaranId, $tahunAnggaran);
         }
 
         return $sheets;

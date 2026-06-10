@@ -14,6 +14,9 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Forms\Components\FileUpload;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use UnitEnum;
 
 class FormRKBU extends Page implements HasSchemas
@@ -48,7 +51,6 @@ class FormRKBU extends Page implements HasSchemas
     {
         return $schema
             ->components([
-
                 // ── 1. Informasi Umum ──────────────────────────────────────
                 Section::make('Informasi Umum')
                     ->description('Pilih tahun anggaran dan isi informasi dasar barang.')
@@ -72,10 +74,38 @@ class FormRKBU extends Page implements HasSchemas
                             ->required()
                             ->columnSpan(1),
 
-                        TextInput::make('satuan')
+                 Select::make('satuan')
                             ->label('Satuan')
-                            ->placeholder('Contoh: Unit, Buah, Set')
+                            ->options([
+                                'unit' => 'Unit',
+                                'buah' => 'Buah',
+                                'set' => 'Set',
+                                'paket' => 'Paket',
+                                'box' => 'Box',
+                                'dus' => 'Dus',
+                                'rim' => 'Rim',
+                                'lembar' => 'Lembar',
+                                'buku' => 'Buku',
+                                'botol' => 'Botol',
+                                'tube' => 'Tube',
+                                'vial' => 'Vial',
+                                'ampul' => 'Ampul',
+                                'strip' => 'Strip',
+                                'tablet' => 'Tablet',
+                                'kapsul' => 'Kapsul',
+                                'sachet' => 'Sachet',
+                                'roll' => 'Roll',
+                                'meter' => 'Meter',
+                                'liter' => 'Liter',
+                                'kg' => 'Kg',
+                                'gram' => 'Gram',
+                                'pasang' => 'Pasang',
+                                'orang' => 'Orang',
+                                'kali' => 'Kali',
+                            ])
                             ->required()
+                            ->placeholder('Pilih satuan')
+                            ->searchable(false) // kalau opsinya sedikit
                             ->columnSpan(1),
 
                         Select::make('kondisi')
@@ -85,7 +115,7 @@ class FormRKBU extends Page implements HasSchemas
                                 'RR' => 'RR — Rusak Ringan',
                                 'RB' => 'RB — Rusak Berat',
                             ])
-                            ->required()
+                            // ->required()
                             ->columnSpan(1),
                     ])
                     ->columns(2),
@@ -107,25 +137,50 @@ class FormRKBU extends Page implements HasSchemas
                             ->label('Jumlah Yang Ada / Tersedia')
                             ->integer()
                             ->minValue(0)
-                            ->suffix('unit')
                             ->required()
-                            ->columnSpan(1),
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                $tersedia = (int) ($get('tersedia') ?? 0);
+                                $kebutuhan = (int) ($get('kebutuhan') ?? 0);
+                                $harga = (float) ($get('perkiraan_biaya') ?? 0);
+
+                                $kekurangan = max(0, $kebutuhan - $tersedia);
+
+                                $set('kekurangan', $kekurangan);
+                                $set('total', $kekurangan * $harga);
+                            }),
 
                         TextInput::make('kebutuhan')
                             ->label('Kebutuhan')
                             ->integer()
                             ->minValue(1)
-                            ->suffix('unit')
                             ->required()
-                            ->columnSpan(1),
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                $tersedia = (int) ($get('tersedia') ?? 0);
+                                $kebutuhan = (int) ($get('kebutuhan') ?? 0);
+                                $harga = (float) ($get('perkiraan_biaya') ?? 0);
+
+                                $kekurangan = max(0, $kebutuhan - $tersedia);
+
+                                $set('kekurangan', $kekurangan);
+                                $set('total', $kekurangan * $harga);
+                            }),
 
                         TextInput::make('kekurangan')
                             ->label('Kekurangan')
                             ->integer()
-                            ->minValue(0)
-                            ->suffix('unit')
-                            ->required()
-                            ->columnSpan(1),
+                            ->readOnly()
+                            ->dehydrated()
+                            ->disabled()
+                            ->required(),
+                        // TextInput::make('kekurangan')
+                        //     ->label('Kekurangan')
+                        //     ->integer()
+                        //     ->minValue(0)
+                        //     ->suffix('unit')
+                        //     ->required()
+                        //     ->columnSpan(1),
                     ])
                     ->columns(2),
 
@@ -138,15 +193,26 @@ class FormRKBU extends Page implements HasSchemas
                             ->label('Perkiraan Biaya (per unit)')
                             ->numeric()
                             ->prefix('Rp')
-                            ->minValue(0)
                             ->required()
-                            ->columnSpan(1),
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                $tersedia = (int) ($get('tersedia') ?? 0);
+                                $kebutuhan = (int) ($get('kebutuhan') ?? 0);
+                                $harga = (float) ($get('perkiraan_biaya') ?? 0);
+
+                                $kekurangan = max(0, $kebutuhan - $tersedia);
+
+                                $set('kekurangan', $kekurangan);
+                                $set('total', $kekurangan * $harga);
+                            }),
 
                         TextInput::make('total')
                             ->label('Total Biaya')
                             ->numeric()
                             ->prefix('Rp')
                             ->minValue(0)
+                            ->readOnly()
+                            ->dehydrated()
                             ->required()
                             ->columnSpan(1),
                     ])
@@ -164,6 +230,22 @@ class FormRKBU extends Page implements HasSchemas
                             ->columnSpanFull(),
                     ]),
 
+                    
+                // ── 5. Lampiran File ───────────────────────────────────────
+                Section::make('Foto Barang yang tersedia')
+                    ->description('Unggah file pendukung terkait RKBU ini (opsional).')
+                    ->icon(Heroicon::OutlinedPaperClip)
+                    ->schema([
+                        // Implementasi upload file bisa menggunakan FileUpload atau custom component
+                        // Contoh dengan FileUpload:
+                        FileUpload::make('file_path')
+                            ->label('Unggah File')
+                            ->directory('rkbu-files')
+                            ->maxSize(10240) // Maksimal 10MB
+                            ->acceptedFileTypes(['application/pdf', 'image/*'])
+                            ->columnSpanFull(),
+                        ])
+                            ->columnSpanFull(),
             ])
             ->columns(2)
             ->statePath('data')
