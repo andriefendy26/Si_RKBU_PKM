@@ -3,12 +3,14 @@
 namespace App\Filament\Pages\Auth;
 
 use App\Models\TahunAnggaran;
+use App\Models\User;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class Login extends \Filament\Auth\Pages\Login
 {
@@ -48,9 +50,16 @@ class Login extends \Filament\Auth\Pages\Login
             ->components([
                 TextInput::make('username')
                     ->label('Username')
-                    
                     ->required()
-                    ->autofocus(),
+                    ->autofocus()
+                    ->rule(function () {
+                        return function ($attribute, $value, $fail) {
+                            if (filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                                $fail('Silakan login menggunakan username, bukan alamat email.');
+                            }
+                        };
+                    })
+                    ,
                 $this->getPasswordFormComponent(),
                 Select::make('tahun_anggaran_id')
                     ->label('Tahun Anggaran')
@@ -72,6 +81,21 @@ class Login extends \Filament\Auth\Pages\Login
             'username' => $data['username'],
             'password' => $data['password'],
         ];
+
+        $user = User::where('username', $data['username'])->first();
+
+        if (! $user || ! Hash::check($data['password'], $user->password)) {
+            // $this->addError(
+            //     'username',
+            //     'Username atau password salah.'
+            // );
+
+            throw ValidationException::withMessages([
+                'data.password' => 'Username atau password salah.',
+            ]);
+
+            return null;
+        }
 
         if (!Auth::attempt($credentials, $data['remember'] ?? false)) {
             $this->form->getField('username')->state(null); // optional reset field
