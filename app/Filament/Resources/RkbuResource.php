@@ -299,7 +299,10 @@ class RkbuResource extends Resource
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn (RKBU $record): bool => $record->status !== 'approved')
+                    ->visible(fn (RKBU $record): bool => 
+                        auth()->user()->can('approve_rkbu')
+                    )
+                    ->authorize(fn (): bool => auth()->user()->can('approve_rkbu'))
                     ->action(function (RKBU $record): void {
                         $record->update([
                             'status' => 'approved',
@@ -319,7 +322,10 @@ class RkbuResource extends Resource
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn (RKBU $record): bool => $record->status !== 'rejected')
+                    ->visible(fn (RKBU $record): bool => 
+                        auth()->user()->can('reject_rkbu')
+                    )
+                    ->authorize(fn (): bool => auth()->user()->can('reject_rkbu'))
                     ->action(function (RKBU $record): void {
                         $record->update([
                             'status' => 'rejected',
@@ -333,6 +339,7 @@ class RkbuResource extends Resource
                             ->danger()
                             ->send();
                     }),
+
             ])
             ->toolbarActions([
                 DeleteBulkAction::make(),

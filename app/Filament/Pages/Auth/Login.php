@@ -73,7 +73,7 @@ class Login extends \Filament\Auth\Pages\Login
             'password' => $data['password'],
         ];
 
-        if (! Auth::attempt($credentials, $data['remember'] ?? false)) {
+        if (!Auth::attempt($credentials, $data['remember'] ?? false)) {
             $this->form->getField('username')->state(null); // optional reset field
             $this->addError('username', 'Username atau password salah.');
             return null;
